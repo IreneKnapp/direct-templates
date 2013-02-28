@@ -1,7 +1,7 @@
 {
   "name": "direct-templates",
   "version": "1.0.0",
-  "description": "A templating engine.",
+  "description": "A templating engine with an elegant syntax.",
   "licenses": [{"type": "BSD"}],
   "homepage": "http://ireneknapp.com/software/",
   "author": {
