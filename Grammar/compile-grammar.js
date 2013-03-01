@@ -204,20 +204,117 @@ function compileGrammar() {
                 }
                 var reducer = new Function([], reducerSource);
                 
-                productionsByNonterminal[nonterminalCode].push
-                    (productionsHere[j]);
+                productionsByNonterminal[nonterminalCode].push(productionCode);
                 productions.push({
                     left: nonterminalCode,
+                    right: productionsHere[j],
                     arity: productionsHere[j].length,
                     reducer: reducer,
-                    right: productionsHere[j], // DEBUG
-                    reducerSource: reducerSource, // DEBUG
                 });
                 productionCode++;
             }
         }
     }
-    console.log(productions);
+    
+    var states = [];
+    var shifts = [];
+    var reductions = [];
+    
+    var augmentItemSetByItem = function(itemSet, item) {
+        for(var i in itemSet) {
+            var foundItem = itemSet[i];
+            if((foundItem[0] == item[0]) && (foundItem[1] == item[1])) return;
+        }
+        itemSet.push(item);
+        return itemSet;
+    }
+    
+    var augmentItemSetByNonterminal = function(itemSet, nonterminalCode) {
+        var newItemSet = [];
+        
+        for(var i in itemSet) newItemSet.push(itemSet[i]);
+        
+        for(var i in productionsByNonterminal[nonterminalCode]) {
+            var productionCode = productionsByNonterminal[nonterminalCode][i];
+            var found = false;
+            for(var j in newItemSet) {
+                var item = newItemSet[j];
+                if((item[0] == 0) && (item[1] == productionCode)) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                newItemSet = augmentItemSetByItem
+                    (newItemSet, [0, productionCode]);
+            }
+        }
+
+        return newItemSet;
+    }
+    
+    var advanceItemSet = function(itemSet, symbolCode) {
+        var newItemSet = [];
+        for(var i in itemSet) {
+            var item = itemSet[i];
+            var rhs = productions[item[1]].right;
+            if((item[0] < rhs.length) && (rhs[item[0] + 1] == symbolCode))
+            {
+                newItemSet = augmentItemSetByItem
+                    (newItemSet, [item[0] + 1, item[1]]);
+            }
+        }
+        
+        newItemSet = transitivelyCloseItemSet(newItemSet);
+        
+        return newItemSet;
+    }
+    
+    var transitivelyCloseItemSet = function(itemSet) {
+        for(var i = 0; i < itemSet.length; i++) {
+            var item = itemSet[i];
+            var rhs = productions[item[1]].right;
+            if(item[0] < rhs.length) {
+                var symbolCode = rhs[item[0]];
+                if(symbolCode >= 1 + nTokens) {
+                    var nonterminalCode = symbolCode - (1 + nTokens);
+                    itemSet = augmentItemSetByNonterminal
+                        (itemSet, nonterminalCode);
+                }
+            }
+        }
+        
+        return itemSet;
+    }
+    
+    var possibleSymbols = function(itemSet) {
+    }
+    
+    var addState = function(itemSet) {
+        states.push(itemSet);
+        shifts.push([]);
+        reductions.push([]);
+    }
+
+    var shiftToState = function(stateCode, itemSet) {
+        var found = false;
+        for(var i in states) {
+            if(states[i].length != itemSet.length) continue;
+            for(var j in states[i]) {
+            }
+        }
+    }
+    
+    addState(augmentItemSetByNonterminal([], 0));
+    addState(advanceItemSet(states[0], 48));
+    for(var i in states) {
+        console.log(states[i], shifts[i], reductions[i]);
+    }
+    
+    for(var i in productions) {
+        delete productions[i].right;
+    }
+    grammar.productions = productions;
 }
 
 
