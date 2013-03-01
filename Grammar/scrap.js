@@ -118,10 +118,10 @@ while(holdingArea.length > 0) {
 
 
 var stringifiedTable = "";
-for(var i = 0; i < runLengthEncodedTable.length; i += 3) {
-    var valueA = runLengthEncodedTable[i];
-    var valueB = runLengthEncodedTable[i + 1];
-    var valueC = runLengthEncodedTable[i + 2];
+for(var i = 0; i < lempelZivWelchEncodedTable.length; i += 3) {
+    var valueA = lempelZivWelchEncodedTable[i];
+    var valueB = lempelZivWelchEncodedTable[i + 1];
+    var valueC = lempelZivWelchEncodedTable[i + 2];
     var bitBundles = [valueA >> 2,
                       (valueA << 6) % 64 + (valueB >> 4),
                       (valueB << 4) % 64 + (valueC >> 6),
@@ -144,9 +144,9 @@ for(var i = 0; i < runLengthEncodedTable.length; i += 3) {
         }
     }
 }
-if(runLengthEncodedTable.length % 3 == 1) {
+if(lempelZivWelchEncodedTable.length % 3 == 1) {
     stringifiedTable += "=";
-} else if(runLengthEncodedTable.length %2 == 2) {
+} else if(lempelZivWelchEncodedTable.length %2 == 2) {
     stringifiedTable += "==";
 }
 
