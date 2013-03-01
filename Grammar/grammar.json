@@ -4,109 +4,121 @@
 "start": "top-level",
 "bnf": {
 "top-level": [
-    ["S?", "statement-list", "S?", "end"],
+    [["id"], ["S?", "@statement-list", "S?", "end"]]
 ],
 "block": [
-    [["{", "S?", "}"],
-    ["{", "S?", "statement-list", "S?", "}"]
+    [["array"], ["{", "S?", "}"]],
+    [["id"], ["{", "S?", "@statement-list", "S?", "}"]]
 ],
 "statement-list": [
-    ["statement-list", "S?", "statement"],
-    ["statement-list", "S?", "content", "S?", "statement"],
-    ["statement"],
-    ["content", "S?", "statement"]
+    [["array"], ["@statement-list", "S?", "0:statement"]],
+    [["array"], ["@statement-list", "S?", "0:content", "S?", "1:statement"]],
+    [["array"], ["0:statement"]],
+    [["array"], ["0:content", "S?", "1:statement"]]
 ],
 "statement": [
-    ["parenthesized-expression"],
-    ["if-statement"],
-    ["for-statement"],
-    ["fill-statement"]
+    [["id"], ["@parenthesized-expression"]],
+    [["id"], ["@if-statement"]],
+    [["id"], ["@for-statement"]],
+    [["id"], ["@fill-statement"]]
 ],
 "if-statement": [
-    ["if-statement-head", "S?", "else-clause"]
+    [["object"], ["@if-statement-head", "S?", "ifFalse:else-clause"]]
 ],
 "if-statement-head": [
-    ["if", "S?", "parenthesized-expression", "S?", "block"]
+    [["object", "type:if"],
+     ["if", "S?", "condition:parenthesized-expression", "S?", "ifTrue:block"]]
 ],
 "else-clause": [
-    ["else", "S?", "block"]
+    [["id"], ["else", "S?", "@block"]]
 ],
 "for-statement": [
-    ["for", "S?", "identifier", "S?", "parenthesized-expression", "S?",
-     "block"]
+    [["object", "type:for"],
+     ["for", "S?", "identifier:identifier", "S?",
+      "expression:parenthesized-expression", "S?", "block"]]
 ],
 "fill-statement": [
-    ["fill", "S?", "identifier", "S?", "parenthesized-expression"]
+    [["object", "type:fill"],
+     ["fill", "S?", "identifier:identifier", "S?",
+      "expression:parenthesized-expression"]]
 ],
 "parenthesized-expression": [
-    ["(", "S?", "expression", ")"]
+    [["id"], ["(", "S?", "@expression", ")"]]
 ],
 "expression": [
-    ["expression6", "S?"]
+    [["id"], ["@expression6", "S?"]]
 ],
 "expression6": [
-    ["expression6", "&&", "S?", "expression5"],
-    ["expression6", "||", "S?", "expression5"],
-    ["expression5"]
+    [["object", "type:&&"],
+     ["left:expression6", "&&", "S?", "right:expression5"]],
+    [["object", "type:||"],
+     ["left:expression6", "||", "S?", "right:expression5"]],
+    [["id"], ["@expression5"]]
 ],
 "expression5": [
-    ["expression5", "==", "S?", "expression4"],
-    ["expression5", "!=", "S?", "expression4"],
-    ["expression5", "<", "S?", "expression4"],
-    ["expression5", ">", "S?", "expression4"],
-    ["expression5", "<=", "S?", "expression4"],
-    ["expression5", ">=", "S?", "expression4"],
-    ["expression4"]
+    [["object", "type:=="],
+     ["expression5", "==", "S?", "expression4"]],
+    [["object", "type:!="],
+     ["expression5", "!=", "S?", "expression4"]],
+    [["object", "type:<"],
+     ["expression5", "<", "S?", "expression4"]],
+    [["object", "type:>"],
+     ["expression5", ">", "S?", "expression4"]],
+    [["object", "type:<="],
+     ["expression5", "<=", "S?", "expression4"]],
+    [["object", "type:>="],
+     ["expression5", ">=", "S?", "expression4"]],
+    [["id"], ["@expression4"]]
 ],
 "expression4": [
-    ["expression4", "+", "S?", "expression3"],
-    ["expression4", "-", "S?", "expression3"],
-    ["expression3"]
+    [["object", "type:+"], ["expression4", "+", "S?", "expression3"]],
+    [["object", "type:-"], ["expression4", "-", "S?", "expression3"]],
+    [["id"], ["@expression3"]]
 ],
 "expression3": [
-    ["expression3", "*", "S?", "expression2"],
-    ["expression3", "/", "S?", "expression2"],
-    ["expression3", "%", "S?", "expression2"],
-    ["expression2"]
+    [["object", "type:*"], ["expression3", "*", "S?", "expression2"]],
+    [["object", "type:/"], ["expression3", "/", "S?", "expression2"]],
+    [["object", "type:%"], ["expression3", "%", "S?", "expression2"]],
+    [["id"], ["@expression2"]]
 ],
 "expression2": [
-    ["expression2", ".", "S?", "expression1"],
-    ["expression1"]
+    [["object", "type:."], ["expression2", ".", "S?", "expression1"]],
+    [["id"], ["@expression1"]]
 ],
 "expression1": [
-    ["string"],
-    ["identifier"],
-    ["parenthesized-expression"]
+    [["id"], ["@string"]],
+    [["id"], ["@identifier"]],
+    [["id"], ["@parenthesized-expression"]]
 ],
 "content": [
-    ["content", "content1"],
-    ["content", "S", "content1"],
-    ["content1"]
+    [["array"], ["@content", "0:content1"]],
+    [["array"], ["@content", "0:S", "1:content1"]],
+    [["array"], ["0:content1"]]
 ],
 "content1": [
-    ["string"],
-    ["operator"],
-    ["identifier"],
-    ["raw-content"]
+    [["id"], ["@string"]],
+    [["id"], ["@operator"]],
+    [["id"], ["@identifier"]],
+    [["id"], ["@raw-content"]]
 ],
 "operator": [
-    ["!"],
-    ["."],
-    ["+"],
-    ["-"],
-    ["*"],
-    ["/"],
-    ["%"],
-    ["<="],
-    [">="],
-    ["<"],
-    [">"],
-    ["=="],
-    ["!="],
-    ["&&"],
-    ["||"]
+    [["null"], ["!"]],
+    [["null"], ["."]],
+    [["null"], ["+"]],
+    [["null"], ["-"]],
+    [["null"], ["*"]],
+    [["null"], ["/"]],
+    [["null"], ["%"]],
+    [["null"], ["<="]],
+    [["null"], [">="]],
+    [["null"], ["<"]],
+    [["null"], [">"]],
+    [["null"], ["=="]],
+    [["null"], ["!="]],
+    [["null"], ["&&"]],
+    [["null"], ["||"]]
 ],
 "S": [
-    ["space"],
-    ["S", "space"]
+    [["array"], ["0:space"]],
+    [["array"], ["@S", "0:space"]]
 ]}}

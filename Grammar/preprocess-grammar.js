@@ -35,76 +35,196 @@ for(var code in symbolCodesToNames) {
 }
 var nSymbols = 1 + nTokens + nNonterminals;
 
-var productions = [];
-var productionsByNonterminal = {};
+var stringTable = [].concat(symbolCodesToNames);
+var flattenedGrammar = [];
+flattenedGrammar.push(tokenCodesToNames.length);
+flattenedGrammar.push(nonterminalCodesToNames.length);
 for(var nonterminalName in grammarIn.bnf) {
     var nonterminalCode = nonterminalNamesToCodes[nonterminalName];
     var productionsIn = grammarIn.bnf[nonterminalName];
     
-    productionsByNonterminal[nonterminalCode] = [];
+    flattenedGrammar.push(productionsIn.length);
     
     for(var i in productionsIn) {
-        var productionIn = productionsIn[i];
+        var resultIn = productionsIn[i][0];
+        var productionIn = productionsIn[i][1];
         
-        /*
-        var soFar = [[]];
-        for(var j in productionIn) {
-            var symbolName = productionIn[j];
+        var headSoFar = [];
+        var bodySoFar = [];
+        
+        var resultType = resultIn[0];
+        if(resultType == "null") {
+            headSoFar.push(0);
+        } else if(resultType == "id") {
+            headSoFar.push(1);
+
+            var headIndex = null;
+            for(var j in productionIn) {
+                var symbolName = productionIn[j];
+                var key = null;
+                if(symbolName[0] == "@") {
+                    symbolName = symbolName.substr(1);
+                    if(headIndex === null) headIndex = parseInt(j, 10);
+                }
+                productionIn[j] = symbolName;
+            }
+            if(!headIndex) headIndex = 255;
+            headSoFar.push(headIndex);
+        } else if(resultType == "array") {
+            headSoFar.push(2);
             
-            var newSoFar = [];
-            if(symbolName[symbolName.length - 1] == "?") {
-                symbolName = symbolName.substr(0, symbolName.length - 1);
-                var symbolCode = symbolNamesToCodes[symbolName];
-                for(var k in soFar) {
-                    newSoFar.push(soFar[k]);
-                    newSoFar.push(soFar[k].concat([symbolCode]));
+            var headIndex = null;
+            var fieldMap = [];
+            for(var j in productionIn) {
+                var symbolName = productionIn[j];
+                var key = null;
+                if(symbolName[0] == "@") {
+                    symbolName = symbolName.substr(1);
+                    if(headIndex === null) headIndex = parseInt(j, 10);
+                } else {
+                    var colonIndex = symbolName.indexOf(":");
+                    if(colonIndex != -1) {
+                        var key = symbolName.substr(0, colonIndex);
+                        key = parseInt(key, 10);
+                        symbolName = symbolName.substr(colonIndex + 1);
+                        fieldMap[key] = j;
+                    }
                 }
-            } else {
-                for(var k in soFar) {
-                    var symbolCode = symbolNamesToCodes[symbolName];
-                    newSoFar.push(soFar[k].concat([symbolCode]));
-                }
+                productionIn[j] = symbolName;
+            }
+            if(!headIndex) headIndex = 255;
+             
+            var fieldCount = fieldMap.length;
+            
+            headSoFar.push(headIndex);
+            
+            headSoFar.push(fieldCount);
+            
+            for(var key in fieldMap) {
+                var index = fieldMap[key];
+                if(typeof index === "undefined") index = 255;
+                else index = parseInt(index, 10);
+                
+                headSoFar.push(index);
+            }
+        } else if(resultType == "object") {
+            headSoFar.push(3);
+            
+            var constantFieldMap = {};
+            for(var j = 1; j < resultIn.length; j++) {
+                var constantFieldIn = resultIn[j];
+                var colonIndex = constantFieldIn.indexOf(":");
+                var key = constantFieldIn.slice(0, colonIndex);
+                var value = constantFieldIn.slice(colonIndex + 1);
+                
+                constantFieldMap[key] = value;
             }
             
-            soFar = newSoFar;
+            var headIndex = null;
+            var variableFieldMap = {};
+            for(var j in productionIn) {
+                var symbolName = productionIn[j];
+                var key = null;
+                if(symbolName[0] == "@") {
+                    symbolName = symbolName.substr(1);
+                    if(headIndex === null) headIndex = parseInt(j, 10);
+                } else {
+                    var colonIndex = symbolName.indexOf(":");
+                    if(colonIndex != -1) {
+                        var key = symbolName.substr(0, colonIndex);
+                        symbolName = symbolName.substr(colonIndex + 1);
+                        variableFieldMap[key] = j;
+                    }
+                }
+                productionIn[j] = symbolName;
+            }
+            if(!headIndex) headIndex = 255;
+            
+            var constantFieldCount = 0;
+            for(var key in constantFieldMap) {
+                constantFieldCount++;
+            }
+             
+            var variableFieldCount = 0;
+            for(var key in variableFieldMap) {
+                variableFieldCount++;
+            }
+            
+            headSoFar.push(headIndex);
+            
+            headSoFar.push(constantFieldCount);
+
+            for(var key in constantFieldMap) {
+                var value = constantFieldMap[key];
+                
+                for(var stringCode = 0;
+                    stringCode < stringTable.length;
+                    stringCode++)
+                {
+                    if(stringTable[stringCode] == key) break;
+                }
+                if(stringCode == stringTable.length) {
+                    stringTable.push(key);
+                }
+                headSoFar.push(stringCode);
+                
+                for(var stringCode = 0;
+                    stringCode < stringTable.length;
+                    stringCode++)
+                {
+                    if(stringTable[stringCode] == value) break;
+                }
+                if(stringCode == stringTable.length) {
+                    stringTable.push(value);
+                }
+                headSoFar.push(stringCode);
+            }
+            
+            headSoFar.push(variableFieldCount);
+            
+            for(var key in fieldMap) {
+                var index = parseInt(variableFieldMap[key], 10);
+                
+                for(var stringCode = 0;
+                    stringCode < stringTable.length;
+                    stringCode++)
+                {
+                    if(stringTable[stringCode] == key) break;
+                }
+                if(stringCode == stringTable.length) {
+                    stringTable.push(key);
+                }
+                headSoFar.push(stringCode);
+                
+                headSoFar.push(index);
+            }
         }
-        */
         
-        var soFar = [];
         for(var j in productionIn) {
             var symbolName = productionIn[j];
             var isOptional = false;
+            var key = null;
             if(symbolName[symbolName.length - 1] == "?") {
                 symbolName = symbolName.substr(0, symbolName.length - 1);
                 isOptional = true;
             }
             var symbolCode = symbolNamesToCodes[symbolName];
             symbolCode = parseInt(symbolCode, 10);
-            if(isOptional) symbolCode += nSymbols;
-            soFar.push(symbolCode);
+            
+            if(!isOptional) {
+                bodySoFar.push(symbolCode);
+            } else {
+                bodySoFar.push(symbolCode + nSymbols);
+            }
         }
         
-        productionsByNonterminal[nonterminalCode].push(soFar);
-        
-        productions.push({
-            leftHandSide: nonterminalCode,
-            rightHandSide: soFar,
-        });
-    }
-}
-
-var flattenedGrammar = [];
-flattenedGrammar.push(tokenCodesToNames.length);
-flattenedGrammar.push(nonterminalCodesToNames.length);
-for(var nonterminalCode in nonterminalCodesToNames) {
-    var nonterminalName = nonterminalCodesToNames[nonterminalCode];
-    var symbolCode = symbolNamesToCodes[nonterminalName];
-    flattenedGrammar.push(productionsByNonterminal[nonterminalCode].length);
-    for(var i in productionsByNonterminal[nonterminalCode]) {
-        var rightHandSide = productionsByNonterminal[nonterminalCode][i];
-        flattenedGrammar.push(rightHandSide.length);
-        for(var j in rightHandSide) {
-            flattenedGrammar.push(rightHandSide[j]);
+        flattenedGrammar.push(headSoFar.length);
+        for(var j in headSoFar) {
+            flattenedGrammar.push(headSoFar[j]);
+        }
+        flattenedGrammar.push(bodySoFar.length);
+        for(var j in bodySoFar) {
+            flattenedGrammar.push(bodySoFar[j]);
         }
     }
 }
@@ -150,7 +270,7 @@ encode: function(input) {
 
 
 var grammarOut = {
-    symbols: symbolCodesToNames,
+    strings: stringTable,
     compressed: Base64.encode(flattenedGrammar),
 };
 
