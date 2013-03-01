@@ -1,0 +1,112 @@
+{"tokens": ["if", "else", "for", "fill", "identifier", "space", "{", "}",
+            "(", ")", "&&", "||", "==", "!=", "<", ">", "<=", ">=", "+",
+            "-", "*", "/", "%", "."],
+"start": "top-level",
+"bnf": {
+"top-level": [
+    ["S?", "statement-list", "S?", "end"]
+],
+"block": [
+    ["{", "S?", "}"],
+    ["{", "S?", "statement-list", "S?", "}"]
+],
+"statement-list": [
+    ["statement-list", "S?", "statement"],
+    ["statement-list", "S?", "content", "S?", "statement"],
+    ["statement"],
+    ["content", "S?", "statement"]
+],
+"statement": [
+    ["parenthesized-expression"],
+    ["if-statement"],
+    ["for-statement"],
+    ["fill-statement"]
+],
+"if-statement": [
+    ["if-statement-head", "S?", "else-clause"]
+],
+"if-statement-head": [
+    ["if", "S?", "parenthesized-expression", "S?", "block"]
+],
+"else-clause": [
+    ["else", "S?", "block"]
+],
+"for-statement": [
+    ["for", "S?", "identifier", "S?", "parenthesized-expression", "S?",
+     "block"]
+],
+"fill-statement": [
+    ["fill", "S?", "identifier", "S?", "parenthesized-expression"]
+],
+"parenthesized-expression": [
+    ["(", "S?", "expression", ")"]
+],
+"expression": [
+    ["expression6", "S?"]
+],
+"expression6": [
+    ["expression6", "&&", "S?", "expression5"],
+    ["expression6", "||", "S?", "expression5"],
+    ["expression5"]
+],
+"expression5": [
+    ["expression5", "==", "S?", "expression4"],
+    ["expression5", "!=", "S?", "expression4"],
+    ["expression5", "<", "S?", "expression4"],
+    ["expression5", ">", "S?", "expression4"],
+    ["expression5", "<=", "S?", "expression4"],
+    ["expression5", ">=", "S?", "expression4"],
+    ["expression4"]
+],
+"expression4": [
+    ["expression4", "+", "S?", "expression3"],
+    ["expression4", "-", "S?", "expression3"],
+    ["expression3"]
+],
+"expression3": [
+    ["expression3", "*", "S?", "expression2"],
+    ["expression3", "/", "S?", "expression2"],
+    ["expression3", "%", "S?", "expression2"],
+    ["expression2"]
+],
+"expression2": [
+    ["expression2", ".", "S?", "expression1"],
+    ["expression1"]
+],
+"expression1": [
+    ["string"],
+    ["identifier"],
+    ["parenthesized-expression"]
+],
+"content": [
+    ["content", "content1"],
+    ["content", "S", "content1"],
+    ["content1"]
+],
+"content1": [
+    ["string"],
+    ["operator"],
+    ["identifier"],
+    ["raw-content"]
+],
+"operator": [
+    ["!"],
+    ["."],
+    ["+"],
+    ["-"],
+    ["*"],
+    ["/"],
+    ["%"],
+    ["<="],
+    [">="],
+    ["<"],
+    [">"],
+    ["=="],
+    ["!="],
+    ["&&"],
+    ["||"]
+],
+"S": [
+    ["space"],
+    ["S", "space"]
+]}}
