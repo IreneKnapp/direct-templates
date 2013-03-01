@@ -1,5 +1,5 @@
 var grammar =
-{"strings":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S","0","1","type"],"compressed":"GxUBAgEBBGEeYQACAwL/AAMHYQgCAQIFB2EeYQgEBAL/AQIDHmEfBQL/AgIEBR5hLWEfBAL/AQABHwUC/wIAAgMtYR8EAgH/ASUCAf8BIAIB/wEjAgH/ASQBCAP/AAExADIAAyFhIgEKA/8BMwECMQAyAAUBYSVhHQECAQIDAmEdAQoD/wEzAwIxADIABwNhBWElYR0BCgP/ATMEAjEAMgAFBGEFYSUBAgECBAlhJgoBAgH/AidhAwoD/wEzDAIxADIABCcMYSgKA/8BMw0CMQAyAAQnDWEoAgH/ASgHCgP/ATMOADEAMgAEKA5hKQoD/wEzDwAxADIABCgPYSkKA/8BMxAAMQAyAAQoEGEpCgP/ATMRADEAMgAEKBFhKQoD/wEzEgAxADIABCgSYSkKA/8BMxMAMQAyAAQoE2EpAgH/ASkDCgP/ATMUADEAMgAEKRRhKgoD/wEzFQAxADIABCkVYSoCAf8BKgQKA/8BMxYAMQAyAAQqFmErCgP/ATMXADEAMgAEKhdhKwoD/wEzGAAxADIABCoYYSsCAf8BKwIKA/8BMxkAMQAyAAQrGWEsAgH/ASwDAgH/ARoCAf8BBQIB/wElAwQC/wEBAi0uBQL/AgECAy0wLgQC/wEAAS4EAgH/ARoCAf8BLwIB/wEFAgH/ARsPAQABCwEAARkBAAEUAQABFQEAARYBAAEXAQABGAEAARIBAAETAQABEAEAAREBAAEOAQABDwEAAQwBAAENAgQC/wEAAQYEAv8BAQIwBgAA="}
+{"strings":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S","ifFalse","type","condition","ifTrue","left","right"],"compressed":"GxUBAgEBBGEeYQACAwL/AAMHYQgCAQIFB2EeYQgEBAIAAQIDHmEfBQIAAgIEBR5hLWEfBAL/AQABHwUC/wIAAgMtYR8EAgEAASUCAQABIAIBAAEjAgEAASQBBgMAAAExAgMhYSIBCgP/ATIBAjMCNAQFAWElYR0BAgECAwJhHQEKA/8BMgMCBQImBAcDYQVhJWEdAQoD/wEyBAIFAiYEBQRhBWElAQIBAgQJYSYKAQIBAAInYQMKA/8BMgwCNQA2AwQnDGEoCgP/ATINAjUANgMEJw1hKAIBAAEoBwYD/wEyDgAEKA5hKQYD/wEyDwAEKA9hKQYD/wEyEAAEKBBhKQYD/wEyEQAEKBFhKQYD/wEyEgAEKBJhKQYD/wEyEwAEKBNhKQIBAAEpAwYD/wEyFAAEKRRhKgYD/wEyFQAEKRVhKgIBAAEqBAYD/wEyFgAEKhZhKwYD/wEyFwAEKhdhKwYD/wEyGAAEKhhhKwIBAAErAgYD/wEyGQAEKxlhLAIBAAEsAwIBAAEaAgEAAQUCAQABJQMEAgABAQItLgUCAAIBAgMtMC4EAv8BAAEuBAIBAAEaAgEAAS8CAQABBQIBAAEbDwEAAQsBAAEZAQABFAEAARUBAAEWAQABFwEAARgBAAESAQABEwEAARABAAERAQABDgEAAQ8BAAEMAQABDQIEAv8BAAEGBAIAAQECMAYA=="}
 ;
 
 Base64 = {
@@ -72,84 +72,10 @@ function compileGrammar() {
             for(var j = 0; j < headLength; j++) {
                 head.push(flattened.shift());
             }
-            var resultType = head.shift();
-            var reducerSource;
-            if(resultType == 0) {
-                reducerSource = "return null;";
-            } else if(resultType == 1) {
-                var headIndex = head.shift();
-                reducerSource = "return arguments[" + headIndex + "];";
-            } else if(resultType == 2) {
-                var headIndex = head.shift();
-                var fieldCount = head.shift();
-                var fieldMap = [];
-                for(var j = 0; j < fieldCount; j++) {
-                    fieldMap.push(head.shift());
-                }
-                if(headIndex != 255) {
-                    reducerSource =
-                        "return arguments[" + headIndex + "].concat([";
-                } else {
-                    reducerSource = "return [";
-                }
-                for(var j in fieldMap) {
-                    if(j > 0) reducerSource += ", ";
-                    reducerSource += "arguments[" + fieldMap[j] + "]";
-                }
-                if(headIndex != 255) {
-                    reducerSource += "]);";
-                } else {
-                    reducerSource += "];";
-                }
-            } else if(resultType == 3) {
-                var headIndex = head.shift();
-                var constantFieldCount = head.shift();
-                var constantFieldMap = {};
-                for(var j = 0; j < constantFieldCount; j++) {
-                    var key = grammar.strings[head.shift()];
-                    var value = grammar.strings[head.shift()];
-                    constantFieldMap[key] = value;
-                }
-                var variableFieldCount = head.shift();
-                var variableFieldMap = {};
-                for(var j = 0; j < variableFieldCount; j++) {
-                    var key = grammar.strings[head.shift()];
-                    var value = head.shift();
-                }
-                if(headIndex != 255) {
-                    reducerSource =
-                        "var result = arguments[" + headIndex + "]; ";
-                    for(var key in constantFieldMap) {
-                        var value = constantFieldMap[key];
-                        reducerSource +=
-                            "result[\"" + key + "\"] = \"" + value + "\"; ";
-                    }
-                    for(var key in variableFieldMap) {
-                        var value = variableFieldMap[key];
-                        reducerSource +=
-                            "result[\"" + key + "\"] = arguments[" + value
-                            + "]; ";
-                    }
-                    reducerSource += "return result;";
-                } else {
-                    reducerSource = "return {";
-                    for(var key in constantFieldMap) {
-                        var value = constantFieldMap[key];
-                        reducerSource +=
-                            " \"" + key + "\": \"" + value + "\",";
-                    }
-                    for(var key in variableFieldMap) {
-                        var value = variableFieldMap[key];
-                        reducerSource +=
-                            " \"" + key + "\": arguments[" + value + "],";
-                    }
-                    reducerSource += " };";
-                }
-            }
-            var reducer = new Function([], reducerSource);
             
             var nSymbolsHere = flattened.shift();
             var productionsHere = [[]];
+            var deletedSymbolsHere = [[]];
             for(var j = 0; j < nSymbolsHere; j++) {
                 var symbolCode = flattened.shift();
                 var isOptional = false;
@@ -159,23 +85,125 @@ function compileGrammar() {
                 }
                 
                 var newProductionsHere = [];
+                var newDeletedSymbolsHere = [];
                 if(!isOptional) {
                     for(var k in productionsHere) {
                         newProductionsHere.push
                             (productionsHere[k].concat([symbolCode]));
+                        newDeletedSymbolsHere.push
+                            ([].concat(deletedSymbolsHere[k]));
                     }
                 } else {
                     for(var k in productionsHere) {
                         newProductionsHere.push(productionsHere[k]);
                         newProductionsHere.push
                             (productionsHere[k].concat([symbolCode]));
+                        newDeletedSymbolsHere.push
+                            ([].concat(deletedSymbolsHere[k], [j]));
+                        newDeletedSymbolsHere.push
+                            ([].concat(deletedSymbolsHere[k]));
                     }
                 }
                 
                 productionsHere = newProductionsHere;
+                deletedSymbolsHere = newDeletedSymbolsHere;
             }
             
             for(var j in productionsHere) {
+                var adjustIndex = function(index) {
+                    if(index == 255) return 255;
+                    var result = index;
+                    for(var k = 0; k < deletedSymbolsHere[j].length; k++) {
+                        var deletedIndex = deletedSymbolsHere[j][k];
+                        if(index == deletedIndex) return 255;
+                        if(index > deletedIndex) result--;
+                    }
+                    return result;
+                };
+                
+                var headHere = [].concat(head);
+                var resultType = headHere.shift();
+                var reducerSource;
+                if(resultType == 0) {
+                    reducerSource = "return null;";
+                } else if(resultType == 1) {
+                    var headIndex = headHere.shift();
+                    reducerSource =
+                        "return arguments[" + adjustIndex(headIndex) + "];";
+                } else if(resultType == 2) {
+                    var headIndex = headHere.shift();
+                    var fieldCount = headHere.shift();
+                    var fieldMap = [];
+                    for(var k = 0; k < fieldCount; k++) {
+                        fieldMap.push(headHere.shift());
+                    }
+                    if(headIndex != 255) {
+                        reducerSource =
+                            "return arguments[" + adjustIndex(headIndex)
+                            + "].concat([";
+                    } else {
+                        reducerSource = "return [";
+                    }
+                    for(var k in fieldMap) {
+                        if(k > 0) reducerSource += ", ";
+                        reducerSource += "arguments["
+                            + adjustIndex(fieldMap[k]) + "]";
+                    }
+                    if(headIndex != 255) {
+                        reducerSource += "]);";
+                    } else {
+                        reducerSource += "];";
+                    }
+                } else if(resultType == 3) {
+                    var headIndex = headHere.shift();
+                    var constantFieldCount = headHere.shift();
+                    var constantFieldMap = {};
+                    for(var k = 0; k < constantFieldCount; k++) {
+                        var key = grammar.strings[headHere.shift()];
+                        var value = grammar.strings[headHere.shift()];
+                        constantFieldMap[key] = value;
+                    }
+                    var variableFieldCount = headHere.shift();
+                    var variableFieldMap = {};
+                    for(var k = 0; k < variableFieldCount; k++) {
+                        var key = grammar.strings[headHere.shift()];
+                        var value = headHere.shift();
+                        variableFieldMap[key] = value;
+                    }
+                    if(headIndex != 255) {
+                        reducerSource =
+                            "var result = arguments[" + adjustIndex(headIndex)
+                            + "]; ";
+                        for(var key in constantFieldMap) {
+                            var value = constantFieldMap[key];
+                            reducerSource +=
+                                "result[\"" + key + "\"] = \"" + value + "\"; ";
+                        }
+                        for(var key in variableFieldMap) {
+                            var value = variableFieldMap[key];
+                            reducerSource +=
+                                "result[\"" + key + "\"] = arguments["
+                                + adjustIndex(value) + "]; ";
+                        }
+                        reducerSource += "return result;";
+                    } else {
+                        reducerSource = "return {";
+                        for(var key in constantFieldMap) {
+                            var value = constantFieldMap[key];
+                            reducerSource +=
+                                " \"" + key + "\": \"" + value + "\",";
+                        }
+                        for(var key in variableFieldMap) {
+                            var value = variableFieldMap[key];
+                            reducerSource +=
+                                " \"" + key + "\": arguments["
+                                + adjustIndex(value) + "],";
+                        }
+                        reducerSource += " };";
+                    }
+                }
+                var reducer = new Function([], reducerSource);
+                
                 productionsByNonterminal[nonterminalCode].push
                     (productionsHere[j]);
                 productions.push({

@@ -64,17 +64,19 @@ for(var nonterminalName in grammarIn.bnf) {
                 var key = null;
                 if(symbolName[0] == "@") {
                     symbolName = symbolName.substr(1);
-                    if(headIndex === null) headIndex = parseInt(j, 10);
+                    if(headIndex === null) {
+                        headIndex = parseInt(j, 10);
+                    }
                 }
                 productionIn[j] = symbolName;
             }
-            if(!headIndex) headIndex = 255;
+            if(headIndex === null) headIndex = 255;
             headSoFar.push(headIndex);
         } else if(resultType == "array") {
             headSoFar.push(2);
             
             var headIndex = null;
-            var fieldMap = [];
+            var variableFieldMap = [];
             for(var j in productionIn) {
                 var symbolName = productionIn[j];
                 var key = null;
@@ -87,21 +89,21 @@ for(var nonterminalName in grammarIn.bnf) {
                         var key = symbolName.substr(0, colonIndex);
                         key = parseInt(key, 10);
                         symbolName = symbolName.substr(colonIndex + 1);
-                        fieldMap[key] = j;
+                        variableFieldMap[key] = j;
                     }
                 }
                 productionIn[j] = symbolName;
             }
-            if(!headIndex) headIndex = 255;
+            if(headIndex === null) headIndex = 255;
              
-            var fieldCount = fieldMap.length;
+            var variableFieldCount = variableFieldMap.length;
             
             headSoFar.push(headIndex);
             
-            headSoFar.push(fieldCount);
+            headSoFar.push(variableFieldCount);
             
-            for(var key in fieldMap) {
-                var index = fieldMap[key];
+            for(var key in variableFieldMap) {
+                var index = variableFieldMap[key];
                 if(typeof index === "undefined") index = 255;
                 else index = parseInt(index, 10);
                 
@@ -138,7 +140,7 @@ for(var nonterminalName in grammarIn.bnf) {
                 }
                 productionIn[j] = symbolName;
             }
-            if(!headIndex) headIndex = 255;
+            if(headIndex === null) headIndex = 255;
             
             var constantFieldCount = 0;
             for(var key in constantFieldMap) {
@@ -182,7 +184,7 @@ for(var nonterminalName in grammarIn.bnf) {
             
             headSoFar.push(variableFieldCount);
             
-            for(var key in fieldMap) {
+            for(var key in variableFieldMap) {
                 var index = parseInt(variableFieldMap[key], 10);
                 
                 for(var stringCode = 0;
