@@ -1,40 +1,54 @@
 var grammarIn =
-{"symbols":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S"],"productions":"GBQBBGQeYAACAAxhCAQHYBhhCAADHGQfBBhhLGQfABwDLGQfBAQlACABIAQkAAwhYCgBBARhJGQdAAwCYBQBBAxhBGQlYBQBBABhBGQlAAAJYCgKAAgnYAwEJABhKAAnDGQoACAHBCAOYCQEKAxhKAAoEGQpBCARYCQEKBhhKAAoEGQpACQDBCQUYCgEKBRhKAQqBAAqFGQrBCgXYCwEKBBhKAQrAAArGGQsACADABgBBAQlAAgtLAwtMCgBLAABGAQvAAQBGAwBCAQZABABFAQWABwBGAQSABwBEAQRAAgBDAQMAAQCAAgCMAg"};
+{"symbols":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S"],"productions":"GxUBBGEeYQACAwdhCAUHYR5hCAQDHmEfBR5hLWEfAR8DLWEfBAElASABIwEkAQMhYSIBBQFhJWEdAQMCYR0BBwNhBWElYR0BBQRhBWElAQQJYSYKAQInYQMEJwxhKAQnDWEoASgHBCgOYSkEKA9hKQQoEGEpBCgRYSkEKBJhKQQoE2EpASkDBCkUYSoEKRVhKgEqBAQqFmErBCoXYSsEKhhhKwErAgQrGWEsASwDARoBBQElAwItLgMtMC4BLgQBGgEvAQUBGw8BCwEZARQBFQEWARcBGAESARMBEAERAQ4BDwEMAQ0CAQYCMAYA=="}
+;
 
 Base64 = {
 decode: function(input) {
     var output = [];
-    for(var i = 0; i < input.length; i += 3) {
-        var valueA = input[i];
-        var valueB = input[i + 1];
-        var valueC = input[i + 2];
-        var bitBundles = [valueA >> 2,
-                          (valueA << 6) % 64 + (valueB >> 4),
-                          (valueB << 4) % 64 + (valueC >> 6),
-                          valueC % 64];
-        for(var j in bitBundles) {
-            var bitBundle = bitBundles[j];
-            if(bitBundle < 26) {
-                output += String.fromCharCode
-                    (bitBundle + 'A'.charCodeAt(0));
-            } else if(bitBundle < 52) {
-                output += String.fromCharCode
-                    (bitBundle - 26 + 'a'.charCodeAt(0));
-            } else if(bitBundle < 62) {
-                output += String.fromCharCode
-                    (bitBundle - 52 + '0'.charCodeAt(0));
-            } else if(bitBundle == 62) {
-                output += "+";
-            } else if(bitBundle == 63) {
-                output += "/";
+    var charCodeBrackets = [
+        "A".charCodeAt(0), "Z".charCodeAt(0) + 1, 0,
+        "a".charCodeAt(0), "z".charCodeAt(0) + 1, 26,
+        "0".charCodeAt(0), "9".charCodeAt(0) + 1, 52,
+        "+".charCodeAt(0), "+".charCodeAt(0) + 1, 62,
+        "/".charCodeAt(0), "/".charCodeAt(0) + 1, 63,
+    ];
+    var bitBundles = [];
+    var mod3 = 0;
+    for(var i = 0; i < input.length; i++) {
+        var charCode = input[i].charCodeAt(0);
+        for(var j = 0; j < charCodeBrackets.length; j += 3) {
+            if((charCode >= charCodeBrackets[j])
+               && (charCode < charCodeBrackets[j + 1]))
+            {
+                bitBundles.push(charCode - charCodeBrackets[j]
+                                + charCodeBrackets[j + 2]);
+                mod3 = 0;
+                break;
             }
         }
+        if((j == charCodeBrackets.length) && (input[i] == "=")) {
+            mod3++;
+        }
     }
-    if(input.length % 3 == 1) {
-        output += "=";
-    } else if(input.length %2 == 2) {
-        output += "==";
+    while(bitBundles.length > 4) {
+        output.push((bitBundles[0] << 2) + (bitBundles[1] >> 4));
+        output.push((bitBundles[1] << 4) % 256 + (bitBundles[2] >> 2));
+        output.push((bitBundles[2] << 6) % 256 + (bitBundles[3]));
+        bitBundles = bitBundles.slice(4);
+    }
+    if(mod3 == 1) {
+        output.push((bitBundles[0] << 2) + (bitBundles[1] >> 4));
+    } else if(mod3 == 2) {
+        output.push((bitBundles[0] << 2) + (bitBundles[1] >> 4));
+        output.push((bitBundles[1] << 4) % 256 + (bitBundles[2] >> 2));
+    } else if(mod3 == 0) {
+        output.push((bitBundles[0] << 2) + (bitBundles[1] >> 4));
+        output.push((bitBundles[1] << 4) % 256 + (bitBundles[2] >> 2));
+        output.push((bitBundles[2] << 6) % 256 + (bitBundles[3]));
     }
     return output;
 }
 };
+
+var flattenedGrammar = Base64.decode(grammarIn.productions);
+console.log(flattenedGrammar);

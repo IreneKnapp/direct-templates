@@ -115,11 +115,11 @@ encode: function(input) {
     var output = "";
     for(var i = 0; i < input.length; i += 3) {
         var valueA = input[i];
-        var valueB = input[i + 1];
-        var valueC = input[i + 2];
+        var valueB = input[i + 1] || 0;
+        var valueC = input[i + 2] || 0;
         var bitBundles = [valueA >> 2,
-                          (valueA << 6) % 64 + (valueB >> 4),
-                          (valueB << 4) % 64 + (valueC >> 6),
+                          (valueA << 4) % 64 + (valueB >> 4),
+                          (valueB << 2) % 64 + (valueC >> 6),
                           valueC % 64];
         for(var j in bitBundles) {
             var bitBundle = bitBundles[j];
@@ -141,7 +141,7 @@ encode: function(input) {
     }
     if(input.length % 3 == 1) {
         output += "=";
-    } else if(input.length %2 == 2) {
+    } else if(input.length % 3 == 2) {
         output += "==";
     }
     return output;
