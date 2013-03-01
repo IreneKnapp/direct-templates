@@ -1,5 +1,5 @@
-var grammarIn =
-{"symbols":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S"],"productions":"GxUBBGEeYQACAwdhCAUHYR5hCAQDHmEfBR5hLWEfAR8DLWEfBAElASABIwEkAQMhYSIBBQFhJWEdAQMCYR0BBwNhBWElYR0BBQRhBWElAQQJYSYKAQInYQMEJwxhKAQnDWEoASgHBCgOYSkEKA9hKQQoEGEpBCgRYSkEKBJhKQQoE2EpASkDBCkUYSoEKRVhKgEqBAQqFmErBCoXYSsEKhhhKwErAgQrGWEsASwDARoBBQElAwItLgMtMC4BLgQBGgEvAQUBGw8BCwEZARQBFQEWARcBGAESARMBEAERAQ4BDwEMAQ0CAQYCMAYA=="}
+var grammar =
+{"symbols":["end","if","else","for","fill","identifier","space","{","}","(",")","!","&&","||","==","!=","<",">","<=",">=","+","-","*","/","%",".","string","raw-content","top-level","block","statement-list","statement","if-statement","if-statement-head","else-clause","for-statement","fill-statement","parenthesized-expression","expression","expression6","expression5","expression4","expression3","expression2","expression1","content","content1","operator","S"],"compressed":"GxUBBGEeYQACAwdhCAUHYR5hCAQDHmEfBR5hLWEfAR8DLWEfBAElASABIwEkAQMhYSIBBQFhJWEdAQMCYR0BBwNhBWElYR0BBQRhBWElAQQJYSYKAQInYQMEJwxhKAQnDWEoASgHBCgOYSkEKA9hKQQoEGEpBCgRYSkEKBJhKQQoE2EpASkDBCkUYSoEKRVhKgEqBAQqFmErBCoXYSsEKhhhKwErAgQrGWEsASwDARoBBQElAwItLgMtMC4BLgQBGgEvAQUBGw8BCwEZARQBFQEWARcBGAESARMBEAERAQ4BDwEMAQ0CAQYCMAYA=="}
 ;
 
 Base64 = {
@@ -50,5 +50,64 @@ decode: function(input) {
 }
 };
 
-var flattenedGrammar = Base64.decode(grammarIn.productions);
-console.log(flattenedGrammar);
+
+function compileGrammar() {
+    var flattened = Base64.decode(grammar.compressed);
+    delete grammar.compressed;
+    var nTokens = flattened.shift();
+    var nNonterminals = flattened.shift();
+    var nSymbols = 1 + nTokens + nNonterminals;
+    var productionsByNonterminal = [];
+    var productions = [];
+    var productionCode = 0;
+    for(var nonterminalCode = 0;
+        nonterminalCode < nNonterminals;
+        nonterminalCode++)
+    {
+        productionsByNonterminal.push([]);
+        var nProductionsHere = flattened.shift();
+        for(var i = 0; i < nProductionsHere; i++) {
+            var nSymbolsHere = flattened.shift();
+            var productionsHere = [[]];
+            for(var j = 0; j < nSymbolsHere; j++) {
+                var symbolCode = flattened.shift();
+                var isOptional = false;
+                if(symbolCode >= nSymbols) {
+                    symbolCode -= nSymbols;
+                    isOptional = true;
+                }
+                
+                var newProductionsHere = [];
+                if(!isOptional) {
+                    for(var k in productionsHere) {
+                        newProductionsHere.push
+                            (productionsHere[k].concat([symbolCode]));
+                    }
+                } else {
+                    for(var k in productionsHere) {
+                        newProductionsHere.push(productionsHere[k]);
+                        newProductionsHere.push
+                            (productionsHere[k].concat([symbolCode]));
+                    }
+                }
+                
+                productionsHere = newProductionsHere;
+            }
+            for(var j in productionsHere) {
+                productionsByNonterminal[nonterminalCode].push
+                    (productionsHere[j]);
+                productions.push({
+                    left: nonterminalCode,
+                    arity: productionsHere[j].length,
+                });
+                productionCode++;
+            }
+        }
+    }
+    console.log(productions);
+}
+
+
+compileGrammar();
+//console.log(grammar);
+

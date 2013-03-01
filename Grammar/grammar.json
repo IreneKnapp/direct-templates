@@ -4,10 +4,10 @@
 "start": "top-level",
 "bnf": {
 "top-level": [
-    ["S?", "statement-list", "S?", "end"]
+    ["S?", "statement-list", "S?", "end"],
 ],
 "block": [
-    ["{", "S?", "}"],
+    [["{", "S?", "}"],
     ["{", "S?", "statement-list", "S?", "}"]
 ],
 "statement-list": [

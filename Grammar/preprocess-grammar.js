@@ -151,7 +151,7 @@ encode: function(input) {
 
 var grammarOut = {
     symbols: symbolCodesToNames,
-    productions: Base64.encode(flattenedGrammar),
+    compressed: Base64.encode(flattenedGrammar),
 };
 
 console.log(JSON.stringify(grammarOut));
