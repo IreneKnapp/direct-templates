@@ -14,44 +14,70 @@ for(var code in tokenCodesToNames) {
     tokenNamesToCodes[tokenCodesToNames[code]] = code;
 }
 
-var nonterminalsByName = {};
+var nonterminalCodesToNames = [];
 for(var nonterminalName in grammarIn.bnf) {
+    nonterminalCodesToNames.push(nonterminalName);
+}
+var nonterminalNamesToCodes = {};
+for(var code in nonterminalCodesToNames) {
+    nonterminalNamesToCodes[nonterminalCodesToNames[code]] = code;
+}
+
+var symbolCodesToNames = ["end"].concat
+    (tokenCodesToNames, nonterminalCodesToNames);
+var symbolNamesToCodes = {};
+for(var code in symbolCodesToNames) {
+    symbolNamesToCodes[symbolCodesToNames[code]] = code;
+}
+
+var productions = [];
+var productionsByNonterminal = {};
+for(var nonterminalName in grammarIn.bnf) {
+    var nonterminalCode = nonterminalNamesToCodes[nonterminalName];
     var productionsIn = grammarIn.bnf[nonterminalName];
     
-    var productionsOut = [];
+    productionsByNonterminal[nonterminalCode] = [];
+    
     for(var i in productionsIn) {
         var productionIn = productionsIn[i];
         
         var soFar = [[]];
         for(var j in productionIn) {
-            var symbol = productionIn[j];
+            var symbolName = productionIn[j];
             
             var newSoFar = [];
-            if(symbol[symbol.length - 1] == "?") {
-                symbol = symbol.substr(0, symbol.length - 1);
+            if(symbolName[symbolName.length - 1] == "?") {
+                symbolName = symbolName.substr(0, symbolName.length - 1);
+                var symbolCode = symbolNamesToCodes[symbolName];
                 for(var k in soFar) {
                     newSoFar.push(soFar[k]);
-                    newSoFar.push(soFar[k].concat([symbol]));
+                    newSoFar.push(soFar[k].concat([symbolCode]));
                 }
             } else {
                 for(var k in soFar) {
-                    newSoFar.push(soFar[k].concat([symbol]));
+                    var symbolCode = symbolNamesToCodes[symbolName];
+                    newSoFar.push(soFar[k].concat([symbolCode]));
                 }
             }
             
             soFar = newSoFar;
         }
         
-        productionsOut = productionsOut.concat(soFar);
+        productionsByNonterminal[nonterminalCode].push(soFar);
+        
+        productions.push({
+            leftHandSide: nonterminalCode,
+            rightHandSide: soFar,
+        });
     }
-    
-    nonterminalsByName[nonterminalName] = productionsOut;
+}
+
+for(var nonterminalName in nonterminalNamesToCodes) {
 }
 
 var grammarOut = {
-    tokens: tokenCodesToNames,
-    start: startSymbolName,
-    bnf: nonterminalsByName,
+    symbols: symbolCodesToNames,
+    productions: productionsByNonterminal,
 };
 
 console.log(JSON.stringify(grammarOut));
